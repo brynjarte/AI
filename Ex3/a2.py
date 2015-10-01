@@ -40,6 +40,7 @@ class Node:
 		self.g = None
 		self.f = None
 
+
 open_list = list()
 closed_list = list()
 board = []
@@ -99,7 +100,15 @@ def construct_path(current_node):
 		current_node.on_path = True
 		construct_path(current_node.navigated_from)
 		
-
+def print_board():
+        for x in range(size_y-1):
+                for y in range(size_x-1):
+                        if board[x][y].type == '#':
+                                shortest_path[x][y] = '#' 
+        print ''
+        for i in shortest_path:
+                print i
+        print ''
 
 def a_star(sorted_list):
         
@@ -111,7 +120,8 @@ def a_star(sorted_list):
 
         sorted_list.pop(0)
         closed_list.append(current)
-
+        shortest_path[current.y][current.x] = 'C'
+        print_board()
         temp_parents = get_parents(current)
         for parent in temp_parents:
                 if parent in closed_list:
@@ -127,22 +137,40 @@ def a_star(sorted_list):
                                 sorted_list.append(parent)
 
 
+def BFS():
+        current = open_list[0]
+        if current.type == 'B':
+                construct_path(current)
+                
+        open_list.pop(0)
+        closed_list.append(current)
+        shortest_path[current.y][current.x] = 'C'
+        #print_board()
+        temp_parents = get_parents(current)
+        for parent in temp_parents:
+                if parent in closed_list:
+                        continue
+                if parent not in open_list:
+                        parent.navigated_from = current
+                        open_list.append(parent)
 			
-def run():
-        sorted_list = sort_open_list(open_list)
-        while len(sorted_list) > 0:
-                sorted_list = sort_open_list(sorted_list)
-                a_star(sorted_list)
+def run(alg):
+        if alg == 'astar':
+                sorted_list = sort_open_list(open_list)
+                while len(sorted_list) > 0:
+                        sorted_list = sort_open_list(sorted_list)
+                        a_star(sorted_list)
+        elif alg == 'BFS':
+                while len(open_list) > 0:
+                        BFS()
+                
+     
 
-	#for x in range(7):
-		#for y in range(20):
-			#if board[x][y].type == '#':
-				#shortest_path[x][y] = '#' 
+        
 
-        for i in shortest_path:
-                print i
+        print_board()        
 
 
-run()
+run('astar')
 
 	
