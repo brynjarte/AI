@@ -1,8 +1,6 @@
 from sys import stdin
 from math import fabs
 
-# var ikke definert i den gamle python-versjonen som 
-# ligger paa noen av stud sine maskiner
 True = 1
 False = 0
 
@@ -44,9 +42,10 @@ class Node:
 open_list = list()
 closed_list = list()
 board = []
-fil = open('board-1-1.txt')
+fil = open('board-2-1.txt')
 
 goal = None
+
 y = 0
 
 for line in fil:
@@ -77,8 +76,12 @@ size_x = len(board[0])
 
 shortest_path = [['.' for x in range(0,size_x)]for z in range(0,size_y)]
 
-def sort_open_list(open_list):
-        open_list = sorted(open_list, key=lambda x: x.f)
+def sort_open_list(open_list, alg):
+        if alg == 'astar':
+                open_list = sorted(open_list, key=lambda x: x.f)
+        if alg == 'dijkstra':
+                open_list = sorted(open_list, key=lambda x: x.g)
+                
         return open_list
         
 def get_parents(node):
@@ -107,7 +110,7 @@ def print_board():
                                 shortest_path[x][y] = '#' 
         print ''
         for i in shortest_path:
-                print i
+                print ' '.join(i)
         print ''
 
 def a_star(sorted_list):
@@ -120,8 +123,7 @@ def a_star(sorted_list):
 
         sorted_list.pop(0)
         closed_list.append(current)
-        shortest_path[current.y][current.x] = 'C'
-        print_board()
+        shortest_path[current.y][current.x] = 'x'
         temp_parents = get_parents(current)
         for parent in temp_parents:
                 if parent in closed_list:
@@ -135,17 +137,19 @@ def a_star(sorted_list):
 
                         if parent not in sorted_list:
                                 sorted_list.append(parent)
+                                shortest_path[parent.y][parent.x] = '*'
+
 
 
 def BFS():
+
         current = open_list[0]
         if current.type == 'B':
                 construct_path(current)
                 
         open_list.pop(0)
         closed_list.append(current)
-        shortest_path[current.y][current.x] = 'C'
-        #print_board()
+        shortest_path[current.y][current.x] = 'x'
         temp_parents = get_parents(current)
         for parent in temp_parents:
                 if parent in closed_list:
@@ -153,22 +157,54 @@ def BFS():
                 if parent not in open_list:
                         parent.navigated_from = current
                         open_list.append(parent)
-			
+                        shortest_path[parent.y][parent.x] = '*'
+
+def dijkstra(sorted_list):
+        current = sorted_list[0]
+        
+        if current.type == 'B':
+                construct_path(current)
+                #sorted_list.pop(0)
+
+        sorted_list.pop(0)
+        closed_list.append(current)
+        shortest_path[current.y][current.x] = 'x'
+        temp_parents = get_parents(current)
+        for parent in temp_parents:
+                if parent in closed_list:
+                        continue
+                
+                new_g = current.g + get_cost(parent)
+                if parent not in sorted_list or new_g < parent.g:
+                        parent.navigated_from = current
+                        parent.g = new_g
+
+                        if parent not in sorted_list:
+                                sorted_list.append(parent)
+                                shortest_path[parent.y][parent.x] = '*'
+        
+
 def run(alg):
+        
+        sorted_list = sort_open_list(open_list, alg)
         if alg == 'astar':
-                sorted_list = sort_open_list(open_list)
                 while len(sorted_list) > 0:
-                        sorted_list = sort_open_list(sorted_list)
+                        sorted_list = sort_open_list(sorted_list, alg)
                         a_star(sorted_list)
+                        #print_board()
         elif alg == 'BFS':
                 while len(open_list) > 0:
                         BFS()
+                        #print_board()
+        elif alg == 'dijkstra':
+                while len(sorted_list) > 0:
+                        sorted_list = sort_open_list(sorted_list, alg)
+                        dijkstra(sorted_list)
+                        
+        print_board()
+                                
                 
-     
 
-        
-
-        print_board()        
 
 
 run('astar')
