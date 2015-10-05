@@ -45,7 +45,7 @@ board = []
 fil = open('board-2-1.txt')
 
 goal = None
-
+done = False
 y = 0
 
 for line in fil:
@@ -119,7 +119,10 @@ def a_star(sorted_list):
         
         if current.type == 'B':
                 construct_path(current)
-                #sorted_list.pop(0)
+                sorted_list.pop(0)
+                closed_list.append(current)
+                shortest_path[current.y][current.x] = 'x'
+                return True
 
         sorted_list.pop(0)
         closed_list.append(current)
@@ -127,6 +130,7 @@ def a_star(sorted_list):
         temp_parents = get_parents(current)
         for parent in temp_parents:
                 if parent in closed_list:
+                        shortest_path[parent.y][parent.x] = 'x'
                         continue
                 
                 new_g = current.g + get_cost(parent)
@@ -138,6 +142,7 @@ def a_star(sorted_list):
                         if parent not in sorted_list:
                                 sorted_list.append(parent)
                                 shortest_path[parent.y][parent.x] = '*'
+        return False
 
 
 
@@ -146,6 +151,10 @@ def BFS():
         current = open_list[0]
         if current.type == 'B':
                 construct_path(current)
+                open_list.pop(0)
+                closed_list.append(current)
+                shortest_path[current.y][current.x] = 'x'
+                return True
                 
         open_list.pop(0)
         closed_list.append(current)
@@ -158,13 +167,17 @@ def BFS():
                         parent.navigated_from = current
                         open_list.append(parent)
                         shortest_path[parent.y][parent.x] = '*'
+        return False
 
 def dijkstra(sorted_list):
         current = sorted_list[0]
         
         if current.type == 'B':
                 construct_path(current)
-                #sorted_list.pop(0)
+                sorted_list.pop(0)
+                closed_list.append(current)
+                shortest_path[current.y][current.x] = 'x'
+                return True
 
         sorted_list.pop(0)
         closed_list.append(current)
@@ -182,31 +195,40 @@ def dijkstra(sorted_list):
                         if parent not in sorted_list:
                                 sorted_list.append(parent)
                                 shortest_path[parent.y][parent.x] = '*'
-        
+        return False
 
-def run(alg):
-        
+
+
+def run_algorithm(alg):
+        done = False
         sorted_list = sort_open_list(open_list, alg)
+
         if alg == 'astar':
-                while len(sorted_list) > 0:
+                while len(sorted_list) > 0 and not done:
                         sorted_list = sort_open_list(sorted_list, alg)
-                        a_star(sorted_list)
+                        done = a_star(sorted_list)
                         #print_board()
         elif alg == 'BFS':
-                while len(open_list) > 0:
-                        BFS()
+                while len(open_list) > 0 and not done:
+                        done = BFS()
                         #print_board()
         elif alg == 'dijkstra':
-                while len(sorted_list) > 0:
+                while len(sorted_list) > 0 and not done:
                         sorted_list = sort_open_list(sorted_list, alg)
-                        dijkstra(sorted_list)
-                        
+                        done = dijkstra(sorted_list)
+        
         print_board()
-                                
+        print len(sorted_list)
+        print len(closed_list)                        
                 
+def run():
+        print 'Choose algorithm: astar, BFS or dijkstra:'
+        alg = input('')
+        #board = input('Choose board: board-x-y (x: 1-2, y: 1-5)'
+        run_algorithm(str(alg))#,board)
 
 
 
-run('astar')
+run()
 
 	
