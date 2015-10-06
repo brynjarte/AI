@@ -1,11 +1,12 @@
 from sys import stdin
 from math import fabs
+from PIL import Image, ImageDraw
 
 True = 1
 False = 0
 
 def manhattan_number(node):
-	return fabs(node.x - goal.x) + fabs(node.y -goal.y)
+        return fabs(node.x - goal.x) + fabs(node.y -goal.y)
 
 def get_cost(current_node):
         if current_node.type == 'w':
@@ -21,54 +22,58 @@ def get_cost(current_node):
         else:
                 return 0
 
+
 class Node:
-	x = None
-	y = None
-	navigated_from = None
-	goal = None
-	type = None
-	on_path = None
-	g = None
-	f = None
-	def __init__(self, x, y, type):
-		self.x = x
-		self.y = y
-		self.type = type
-		self.on_path = False
-		self.g = None
-		self.f = None
+        x = None
+        y = None
+        navigated_from = None
+        goal = None
+        type = None
+        on_path = None
+        g = None
+        f = None
+        def __init__(self, x, y, type):
+                self.x = x
+                self.y = y
+                self.type = type
+                self.on_path = False
+                self.g = None
+                self.f = None
 
 
 open_list = list()
 closed_list = list()
 board = []
-fil = open('board-2-1.txt')
+fil = open('board-1-1.txt')
 
 goal = None
 done = False
 y = 0
+map_cost = [['.' for x in range(0,40)]for z in range(0,10)]
 
 for line in fil:
-	temp_line = []
-	for x in range(len(line)-1):
-		if line[x] != '\n':
-			temp_node = Node(x, y, line[x])
-			if temp_node.type == 'B':
-				temp_node.goal = True                   
-				goal = temp_node
-			elif temp_node.type == 'A':
-				start = temp_node
-				open_list.append(temp_node)
-			elif temp_node.type == '#':
-				closed_list.append(temp_node)
-				
-			temp_line.append(temp_node)
-	board.append(temp_line)
-	y = y+1
+        temp_line = []
+        for x in range(len(line)-1):
+                if line[x] != '\n':
+                        temp_node = Node(x, y, line[x])
+                        if temp_node.type == 'B':
+                                temp_node.goal = True                   
+                                goal = temp_node
+                        elif temp_node.type == 'A':
+                                start = temp_node
+                                open_list.append(temp_node)
+                        elif temp_node.type == '#':
+                                closed_list.append(temp_node)
+                        else:        
+                                map_cost[temp_node.y][temp_node.x] = temp_node.type
+
+                        temp_line.append(temp_node)
+        board.append(temp_line)
+        y = y+1
 if len(open_list) > 0:
-	open_list[0].g = 0
-	open_list[0].f = manhattan_number(open_list[0]) + get_cost(open_list[0])
-	open_list[0].on_path = True
+        open_list[0].g = 0
+        open_list[0].f = manhattan_number(open_list[0]) + get_cost(open_list[0])
+        open_list[0].on_path = True
 
 
 size_y = len(board)
@@ -85,24 +90,24 @@ def sort_open_list(open_list, alg):
         return open_list
         
 def get_parents(node):
-	parents = []
-	if( node.y < size_y-1): # UP
-		parents.append(board[node.y+1][node.x])
-	if( node.y > 0): # DOWN
-		parents.append(board[node.y-1][node.x])
-	if( node.x < size_x -1): # RIGHT
-	 	parents.append(board[node.y][node.x+1])
-	if( node.x > 0): #LEFT
-		parents.append(board[node.y][node.x-1])
-	return parents
+        parents = []
+        if( node.y < size_y-1): # UP
+                parents.append(board[node.y+1][node.x])
+        if( node.y > 0): # DOWN
+                parents.append(board[node.y-1][node.x])
+        if( node.x < size_x -1): # RIGHT
+                parents.append(board[node.y][node.x+1])
+        if( node.x > 0): #LEFT
+                parents.append(board[node.y][node.x-1])
+        return parents
 
 def construct_path(current_node):
 
-	shortest_path[current_node.y][current_node.x] = 'o'
-	if current_node.navigated_from != None:
-		current_node.on_path = True
-		construct_path(current_node.navigated_from)
-		
+        shortest_path[current_node.y][current_node.x] = 'o'
+        if current_node.navigated_from != None:
+                current_node.on_path = True
+                construct_path(current_node.navigated_from)
+                
 def print_board():
         for x in range(size_y-1):
                 for y in range(size_x-1):
@@ -219,16 +224,56 @@ def run_algorithm(alg):
         
         print_board()
         print len(sorted_list)
-        print len(closed_list)                        
+        print len(closed_list)
+
+def draw(x_size,y_size):
+        x_size_img = x_size*30
+        y_size_img = y_size*30
+        size = (x_size_img, y_size_img)
+        
+        img = Image.new("RGB", size, "white")
+        draw = ImageDraw.Draw(img)
+        
+        for y in range(0,y_size_img,30):
+                draw.line([0, y, x_size_img, y], 'black', 1)
+        for x in range(0,x_size_img,30):
+                draw.line([x, 0, x, y_size_img], 'black', 1)
+
+        for x in range(y_size):
+                for y in range(x_size):
+                        if map_cost[x][y] == 'w':
+                                draw.rectangle([(30*y),30*x, 30*y+30, 30*x+30], 'blue', 'black')
+                        elif map_cost[x][y] == 'm':
+                                draw.rectangle([(30*y),30*x, 30*y+30, 30*x+30], 'grey', 'black')
+                        elif map_cost[x][y] == 'f':
+                                draw.rectangle([(30*y),30*x, 30*y+30, 30*x+30], (0,120,0), 'black')
+                        elif map_cost[x][y] == 'g':
+                                draw.rectangle([(30*y),30*x, 30*y+30, 30*x+30], 'green', 'black')
+                        elif map_cost[x][y] == 'r':
+                                draw.rectangle([(30*y),30*x, 30*y+30, 30*x+30], 'brown', 'black')
+                        if shortest_path[x][y] == 'o':
+                                draw.ellipse([(30*y)+5,30*x+5, 25+30*y, 25+30*x], 'black', 'black')
+                        elif board[x][y].type == '#':
+                                draw.rectangle([(30*y),30*x, 30*y+30, 30*x+30], 'black', 'black')
+                        elif shortest_path[x][y] == 'x':
+                                draw.text([30*y+15,30*x+15],'x', 'black', None, None)
+                        elif shortest_path[x][y] == '*':
+                                draw.text([30*y+15,30*x+15],'*', 'black', None, None)
+
                 
+        img.save("img.png", "PNG")
+        #img.show()
+        
+
+        
 def run():
         print 'Choose algorithm: astar, BFS or dijkstra:'
         alg = input('')
-        #board = input('Choose board: board-x-y (x: 1-2, y: 1-5)'
+        #board = input('Choose board: board-x-y (x: 1-2, y: 1-5)')
         run_algorithm(str(alg))#,board)
-
+        draw(size_x,size_y)
 
 
 run()
 
-	
+        
