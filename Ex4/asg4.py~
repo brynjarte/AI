@@ -1,0 +1,24 @@
+class Egg:
+	m = None
+	n = None
+	board = None
+
+	def __init__(self, m, n):
+		self.m = m
+		self.n = n
+		self.board = [['.' for x in range(0,n-1)]for y in range(0,m-1)]
+
+
+
+
+def run():
+	m = 2
+	n = 3
+	egg = Egg(m,n)
+	for i in egg.board:
+		print i
+
+
+run()
+	
+
